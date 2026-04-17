@@ -347,8 +347,9 @@
   .section-dark .figure-caption { background: rgba(0,0,0,0.25); color: rgba(236,253,245,0.8); border-color: rgba(255,255,255,0.1); }
 
   /* ========== Cards ========== */
-  .grid-2 { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; }
-  .grid-2-image-right { grid-template-columns: 1fr 1.1fr; }
+  .grid-2 { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+  .grid-2-image-right { grid-template-columns: 1fr; }
+  .grid-2 > .figure, .grid-2-image-right > .figure { max-width: 1100px; width: 100%; margin: 0 auto; justify-self: center; }
   .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 
