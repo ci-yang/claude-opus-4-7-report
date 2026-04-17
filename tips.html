@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boris Cherny · Opus 4.7 使用心法 · 6 個 tips</title>
+<meta name="description" content="Claude Code tech lead Boris Cherny 在 Threads 丟出的 6 個使用 tips：Auto Mode、/fewer-permission-prompts、Recaps、Focus Mode、/effort、Verification。每個 tip 都附 kawaii 情境圖與繁中解說。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Open+Sans:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #059669;
+    --primary-light: #10B981;
+    --primary-dark: #047857;
+    --primary-darker: #064E3B;
+    --primary-deepest: #022c22;
+    --accent: #FBBF24;
+    --accent-dark: #D97706;
+    --bg: #ECFDF5;
+    --bg-page: #F8FAFC;
+    --bg-white: #FFFFFF;
+    --bg-card: #F0FDF4;
+    --bg-dark: #0F172A;
+    --text: #064E3B;
+    --text-body: #1E293B;
+    --text-muted: #475569;
+    --text-subtle: #64748B;
+    --text-light: #6EE7B7;
+    --border: #A7F3D0;
+    --border-soft: #D1FAE5;
+    --border-gray: #E2E8F0;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+    --info: #3B82F6;
+    --code-bg: #1E293B;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    --shadow-sm: 0 1px 3px rgba(5,150,105,0.08), 0 1px 2px rgba(5,150,105,0.04);
+    --shadow-md: 0 4px 12px rgba(5,150,105,0.08), 0 2px 4px rgba(5,150,105,0.04);
+    --shadow-lg: 0 12px 32px rgba(5,150,105,0.12), 0 4px 8px rgba(5,150,105,0.06);
+    --shadow-xl: 0 24px 48px rgba(5,150,105,0.16), 0 8px 16px rgba(5,150,105,0.08);
+
+    --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    --nav-height: 68px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-height) + 24px); }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  body {
+    font-family: 'Noto Sans TC', 'Open Sans', 'Segoe UI', sans-serif;
+    background: var(--bg-page);
+    color: var(--text-body);
+    line-height: 1.65;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ========== Navigation ========== */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    height: var(--nav-height);
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 0 32px; height: 100%;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+    font-weight: 700; font-size: 17px;
+    color: var(--text); text-decoration: none;
+    letter-spacing: -0.2px;
+  }
+  .nav-brand-mark {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: white; font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+  .nav-links {
+    display: flex; align-items: center; gap: 4px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-link {
+    display: inline-flex; align-items: center;
+    padding: 6px 12px; border-radius: 8px;
+    font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+    font-size: 14px; font-weight: 500;
+    color: var(--text-muted); text-decoration: none;
+    white-space: nowrap; cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+  .nav-link:hover, .nav-link:focus-visible { background: var(--bg-card); color: var(--primary-dark); outline: none; }
+  .nav-link.cta {
+    background: var(--primary); color: white; font-weight: 600;
+  }
+  .nav-link.cta:hover { background: var(--primary-dark); color: white; }
+  .nav-link.cta-accent {
+    background: var(--accent); color: var(--primary-deepest); font-weight: 700;
+  }
+  .nav-link.cta-accent:hover { background: var(--accent-dark); color: white; }
+  .nav-link[aria-current="page"] {
+    background: var(--accent); color: var(--primary-deepest); font-weight: 700;
+  }
+  .nav-menu-toggle {
+    display: none; width: 40px; height: 40px;
+    border: none; background: transparent; border-radius: 8px;
+    cursor: pointer; align-items: center; justify-content: center;
+    color: var(--text);
+  }
+  .nav-menu-toggle:hover { background: var(--bg-card); }
+
+  /* ========== Hero ========== */
+  .hero {
+    position: relative;
+    padding: 96px 32px 72px;
+    background:
+      radial-gradient(1200px 500px at 50% -200px, rgba(251,191,36,0.18), transparent 60%),
+      linear-gradient(180deg, var(--bg-page) 0%, #FFFBEB 100%);
+    overflow: hidden;
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; text-align: center; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 6px 16px; border-radius: 100px;
+    background: rgba(251,191,36,0.15);
+    border: 1px solid rgba(251,191,36,0.35);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--accent-dark);
+    margin-bottom: 32px;
+  }
+  .hero-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(251,191,36,0.25); }
+  .hero h1 {
+    font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+    font-size: clamp(36px, 5.4vw, 60px);
+    font-weight: 800; line-height: 1.1;
+    letter-spacing: -1.2px;
+    color: var(--text); margin-bottom: 20px;
+  }
+  .hero h1 .accent-text {
+    background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 60%, var(--primary-light) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .hero-sub {
+    font-size: clamp(17px, 1.9vw, 20px);
+    color: var(--text-muted);
+    max-width: 740px; margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+  .hero-source {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 16px; border-radius: 100px;
+    background: white; border: 1px solid var(--border-soft);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--text-muted);
+    margin-bottom: 48px;
+    box-shadow: var(--shadow-sm);
+  }
+  .hero-source svg { color: var(--primary); }
+  .hero-source a { color: var(--primary-dark); text-decoration: none; font-weight: 600; }
+  .hero-source a:hover { text-decoration: underline; }
+
+  .hero-kpis {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; max-width: 900px; margin: 0 auto;
+  }
+  .hero-kpi {
+    background: white; border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 24px 20px; text-align: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .hero-kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .hero-kpi-num {
+    font-family: 'Poppins', sans-serif;
+    font-size: 36px; font-weight: 800;
+    color: var(--primary);
+    line-height: 1; letter-spacing: -1px;
+  }
+  .hero-kpi-unit { font-size: 16px; color: var(--text-muted); font-weight: 500; }
+  .hero-kpi-label { font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.3; }
+
+  /* ========== Section ========== */
+  .section {
+    padding: 88px 32px;
+    scroll-margin-top: calc(var(--nav-height) + 24px);
+  }
+  .section-inner { max-width: 1200px; margin: 0 auto; }
+  .section-alt { background: var(--bg-card); border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+  .section-dark {
+    background: linear-gradient(135deg, var(--primary-deepest) 0%, var(--primary-darker) 50%, var(--primary-dark) 100%);
+    color: #ECFDF5;
+  }
+  .section-dark .section-title { color: #ECFDF5; }
+  .section-dark .section-kicker { color: var(--text-light); }
+  .section-dark .section-lede { color: rgba(236,253,245,0.75); }
+
+  .section-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 32px; margin-bottom: 48px; flex-wrap: wrap;
+  }
+  .section-title-wrap { max-width: 720px; }
+  .section-kicker {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    color: var(--primary-dark);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .section-kicker .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; height: 28px; padding: 0 8px;
+    background: var(--primary); color: white;
+    border-radius: 8px; font-weight: 700;
+  }
+  .section-dark .section-kicker .num { background: var(--accent); color: var(--primary-deepest); }
+  .section-title {
+    font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+    font-size: clamp(28px, 3.6vw, 38px);
+    font-weight: 700; line-height: 1.2;
+    letter-spacing: -0.6px;
+    color: var(--text); margin-bottom: 12px;
+  }
+  .section-lede {
+    font-size: 17px; color: var(--text-muted);
+    line-height: 1.6; max-width: 620px;
+  }
+
+  /* ========== Figure ========== */
+  .figure {
+    border-radius: var(--radius-lg); overflow: hidden;
+    background: white; border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .figure:hover { box-shadow: var(--shadow-lg); }
+  .figure img { display: block; width: 100%; height: auto; }
+  .figure-caption {
+    padding: 16px 20px; font-size: 14px; color: var(--text-muted);
+    border-top: 1px solid var(--border-soft);
+    background: var(--bg-card);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .section-dark .figure { border-color: rgba(255,255,255,0.1); }
+  .section-dark .figure-caption { background: rgba(0,0,0,0.25); color: rgba(236,253,245,0.8); border-color: rgba(255,255,255,0.1); }
+
+  /* ========== Grid ========== */
+  .grid-2 { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; }
+  .grid-2-image-right { grid-template-columns: 1fr 1.1fr; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  /* ========== Card ========== */
+  .card {
+    background: white; border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--border); }
+  .card-title {
+    font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+    font-size: 19px; font-weight: 700; color: var(--text);
+    margin-bottom: 10px; letter-spacing: -0.2px;
+  }
+  .card-text { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+  .card-icon {
+    width: 44px; height: 44px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.08));
+    color: var(--primary-dark);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .section-dark .card {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+  }
+  .section-dark .card:hover { background: rgba(255,255,255,0.08); border-color: rgba(251,191,36,0.3); }
+  .section-dark .card-title { color: #ECFDF5; }
+  .section-dark .card-text { color: rgba(236,253,245,0.75); }
+  .section-dark .card-icon { background: rgba(251,191,36,0.15); color: var(--accent); }
+
+  /* ========== Stat Card ========== */
+  .stat-card { padding: 24px; }
+  .stat-num {
+    font-family: 'Poppins', sans-serif;
+    font-size: 40px; font-weight: 800; line-height: 1;
+    color: var(--primary); letter-spacing: -1.2px;
+  }
+  .stat-num .unit { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-left: 4px; }
+  .stat-label { font-size: 14px; color: var(--text-muted); margin-top: 10px; line-height: 1.4; }
+  .section-dark .stat-num { color: var(--accent); }
+  .section-dark .stat-label { color: rgba(236,253,245,0.75); }
+
+  /* ========== Feature List ========== */
+  .feature-list { display: flex; flex-direction: column; gap: 16px; }
+  .feature-item {
+    display: grid; grid-template-columns: 44px 1fr;
+    gap: 16px; align-items: flex-start;
+    padding: 16px 20px;
+    background: white; border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .feature-item:hover { border-color: var(--border); box-shadow: var(--shadow-sm); }
+  .feature-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.08));
+    color: var(--primary-dark);
+    border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .feature-text strong { font-size: 16px; color: var(--text); display: block; margin-bottom: 4px; font-family: 'Poppins', 'Noto Sans TC', sans-serif; font-weight: 600; }
+  .feature-text span { font-size: 14px; color: var(--text-muted); line-height: 1.55; }
+  .section-dark .feature-item { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
+  .section-dark .feature-item:hover { background: rgba(255,255,255,0.08); border-color: rgba(251,191,36,0.3); }
+  .section-dark .feature-icon { background: rgba(251,191,36,0.15); color: var(--accent); }
+  .section-dark .feature-text strong { color: #ECFDF5; }
+  .section-dark .feature-text span { color: rgba(236,253,245,0.75); }
+
+  /* ========== Code ========== */
+  .code {
+    background: var(--code-bg); color: #E2E8F0;
+    border-radius: var(--radius-md);
+    padding: 18px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; line-height: 1.7;
+    overflow-x: auto;
+  }
+  .code .prompt { color: #FBBF24; }
+  .code .cmd { color: #6EE7B7; }
+  .code .comment { color: #94A3B8; font-style: italic; }
+  .code .keyword { color: #38BDF8; }
+  .code .str { color: #FDA4AF; }
+
+  /* ========== Callout ========== */
+  .callout {
+    padding: 20px 24px;
+    border-left: 4px solid var(--accent);
+    background: linear-gradient(90deg, rgba(251,191,36,0.1) 0%, transparent 100%);
+    border-radius: var(--radius-sm);
+    margin-top: 28px;
+  }
+  .callout strong { color: var(--accent-dark); font-weight: 700; }
+  .callout.info { border-left-color: var(--info); background: linear-gradient(90deg, rgba(59,130,246,0.08) 0%, transparent 100%); }
+  .callout.info strong { color: #1E40AF; }
+  .section-dark .callout { background: rgba(251,191,36,0.08); }
+  .section-dark .callout strong { color: var(--accent); }
+
+  /* ========== Effort Slider ========== */
+  .effort-slider {
+    position: relative; height: 64px;
+    background: linear-gradient(90deg, var(--bg-card), var(--primary-light) 70%, var(--primary));
+    border-radius: 100px;
+    margin: 24px 0 40px;
+    padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .effort-tick {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 600;
+    color: var(--text);
+    background: white;
+    padding: 4px 12px; border-radius: 100px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  .effort-tick.star {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    color: white; border-color: var(--accent-dark);
+    transform: scale(1.15);
+    box-shadow: 0 8px 20px rgba(251,191,36,0.4);
+  }
+
+  /* ========== Outro CTA ========== */
+  .outro-ctas {
+    margin-top: 40px;
+    display: flex; gap: 14px;
+    justify-content: center; flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 26px; border-radius: 100px;
+    font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+    font-size: 15px; font-weight: 600;
+    text-decoration: none; cursor: pointer;
+    transition: all var(--transition);
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-md); }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+  .btn-outline { background: white; color: var(--text); border-color: var(--border); }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary-dark); box-shadow: var(--shadow-sm); }
+
+  /* ========== Footer ========== */
+  .footer {
+    background: var(--primary-deepest);
+    color: rgba(236,253,245,0.8);
+    padding: 64px 32px 40px;
+  }
+  .footer-inner { max-width: 1200px; margin: 0 auto; }
+  .footer-top { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+  .footer-brand { display: flex; align-items: center; gap: 12px; font-family: 'Poppins', sans-serif; font-weight: 700; color: white; font-size: 18px; margin-bottom: 12px; }
+  .footer-desc { font-size: 14px; color: rgba(236,253,245,0.6); line-height: 1.6; max-width: 340px; }
+  .footer-title { font-family: 'Poppins', 'Noto Sans TC', sans-serif; font-weight: 600; color: white; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+  .footer-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-list a { color: rgba(236,253,245,0.7); text-decoration: none; font-size: 14px; transition: color var(--transition); }
+  .footer-list a:hover { color: var(--accent); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: rgba(236,253,245,0.5);
+  }
+
+  /* ========== Utility ========== */
+  .mt-24 { margin-top: 24px; }
+  .mt-32 { margin-top: 32px; }
+  .mt-48 { margin-top: 48px; }
+  .text-center { text-align: center; }
+
+  /* ========== Responsive ========== */
+  @media (max-width: 1024px) {
+    .grid-2, .grid-2-image-right { grid-template-columns: 1fr; gap: 32px; }
+    .hero-kpis { grid-template-columns: repeat(2, 1fr); }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    body { font-size: 16px; }
+    .section { padding: 64px 24px; }
+    .hero { padding: 72px 24px 56px; }
+    .nav-inner { padding: 0 20px; }
+    .nav-links { display: none; position: fixed; top: var(--nav-height); left: 0; right: 0; background: white; border-bottom: 1px solid var(--border-soft); padding: 12px 20px; flex-direction: column; align-items: stretch; gap: 2px; max-height: calc(100vh - var(--nav-height)); overflow-y: auto; box-shadow: var(--shadow-md); }
+    .nav-links.open { display: flex; }
+    .nav-link { padding: 12px 16px; font-size: 16px; }
+    .nav-menu-toggle { display: inline-flex; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .section-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .footer-top { grid-template-columns: 1fr; gap: 32px; }
+    .effort-slider { flex-wrap: wrap; height: auto; padding: 16px; gap: 8px; border-radius: var(--radius-md); }
+    .hero-kpi-num { font-size: 28px; }
+  }
+  @media (max-width: 480px) {
+    .hero-kpis { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== Navigation ========== -->
+<nav class="nav" aria-label="主要導覽">
+  <div class="nav-inner">
+    <a href="index.html#top" class="nav-brand">
+      <span class="nav-brand-mark">4.7</span>
+      Opus 4.7 技術報告
+    </a>
+    <button class="nav-menu-toggle" id="navToggle" aria-label="開啟選單" aria-expanded="false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html#overview" class="nav-link">總覽</a>
+      <a href="index.html#coding" class="nav-link">編碼</a>
+      <a href="index.html#vision" class="nav-link">視覺</a>
+      <a href="index.html#xhigh" class="nav-link">xhigh</a>
+      <a href="index.html#claude-code" class="nav-link">Claude Code</a>
+      <a href="index.html#migration" class="nav-link">遷移指南</a>
+      <a href="tips.html" class="nav-link cta-accent" aria-current="page">Boris 6 Tips</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ========== Hero ========== -->
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="dot"></span> BORIS TIPS · FROM CLAUDE CODE TECH LEAD</div>
+    <h1>
+      活用 Opus 4.7 的<br>
+      <span class="accent-text">6 個使用心法</span>
+    </h1>
+    <p class="hero-sub">Boris Cherny（Claude Code 的 tech lead）dogfood 4.7 幾週後，在 Threads 丟出的 6 個使用 tips。從 Auto Mode 到 /focus、從 effort 調校到驗證 workflow——每個 tip 都附繁中解說與情境圖。</p>
+    <div class="hero-source">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <span>原串：</span>
+      <a href="https://www.threads.com/@boris_cherny/post/DXM_ATtjxna" target="_blank" rel="noopener">@boris_cherny · 2026/04/16</a>
+    </div>
+
+    <div class="hero-kpis">
+      <div class="hero-kpi">
+        <div class="hero-kpi-num">6</div>
+        <div class="hero-kpi-label">核心 Tips<br><small style="color:var(--text-subtle)">從 Threads 原串整理</small></div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-num">2–3<span class="hero-kpi-unit">×</span></div>
+        <div class="hero-kpi-label">驗證帶來的<br><small style="color:var(--text-subtle)">輸出品質提升</small></div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-num">∞</div>
+        <div class="hero-kpi-label">auto mode 下<br><small style="color:var(--text-subtle)">並行 Claude 數量</small></div>
+      </div>
+      <div class="hero-kpi">
+        <div class="hero-kpi-num" style="font-size:28px;padding-top:6px;">xhigh</div>
+        <div class="hero-kpi-label">Boris 日常的<br><small style="color:var(--text-subtle)">effort 等級</small></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ========== Tip 01 · Auto Mode ========== -->
+<section class="section" id="tip-01">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-kicker"><span class="num">01</span> Auto Mode</div>
+        <h2 class="section-title">不用再守著 permission prompt</h2>
+        <p class="section-lede">Opus 4.7 很適合跑長任務——deep research、重構、iterate 到命中 perf benchmark。Auto mode 把 permission 請求送 classifier 判斷，安全就自動批准。</p>
+      </div>
+    </div>
+
+    <div class="grid-2 grid-2-image-right">
+      <div>
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>從 babysit 到放手跑</strong>
+              <span>以前要嘛你守在旁邊、要嘛 <code>--dangerously-skip-permissions</code> 硬上。Auto mode 把 permission 請求送 classifier，安全就自動批准。</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>同時跑多個 Claude</strong>
+              <span>一個在 cook，你切到下一個。不用等它跑完才能做下一件事——開發節奏整個被放大。</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>支援方案</strong>
+              <span>Max / Teams / Enterprise 用戶可用；目前僅支援 Opus 4.7 模型。</span>
+            </div>
+          </div>
+        </div>
+        <pre class="code mt-24"><span class="prompt">$</span> <span class="cmd">claude</span>
+<span class="comment"># CLI 按 Shift + Tab 進入 Auto Mode</span>
+<span class="keyword">→</span> permission prompt 送 classifier 判斷
+<span class="keyword">→</span> 安全指令自動批准，不用守在旁邊
+<span class="keyword">→</span> 多個 session 並行跑，切換自如</pre>
+      </div>
+      <figure class="figure">
+        <img src="images/tip-01-auto-mode.png" alt="Auto Mode：Opus 4.7 可以並行跑多個任務，permission 請求送 classifier 自動批准，CLI 按 Shift+Tab 進入">
+        <figcaption class="figure-caption">Tip 01 · Shift + Tab 進入</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Tip 02 · /fewer-permission-prompts ========== -->
+<section class="section section-alt" id="tip-02">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-kicker"><span class="num">02</span> /fewer-permission-prompts</div>
+        <h2 class="section-title">掃描歷史，自動建議 allowlist</h2>
+        <p class="section-lede">新的 skill，會掃你 session 歷史，找出那些「明明安全卻一直被問」的 bash 與 MCP 指令，直接幫你列出該加進 allowlist 的清單。</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <figure class="figure">
+        <img src="images/tip-02-fewer-prompts.png" alt="/fewer-permission-prompts skill 掃描 session 歷史，自動建議可以加入 allowlist 的安全指令">
+        <figcaption class="figure-caption">Tip 02 · Auto Mode 的替代選項</figcaption>
+      </figure>
+      <div>
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>掃 session 歷史</strong>
+              <span>找那些你重複批准的指令——<code>git status</code>、<code>npm test</code>、<code>curl &lt;api&gt;</code>、<code>ls -la</code>。</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>產出 allowlist 清單</strong>
+              <span>直接給你一份建議清單，你審過後加進 <code>.claude/settings.json</code>，往後就不再被問。</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>何時用</strong>
+              <span>不想開 Auto Mode，但被 permission prompt 打斷到煩的時候。</span>
+            </div>
+          </div>
+        </div>
+        <div class="callout info mt-24">
+          <strong>延伸：</strong>Claude Code 也有個 <code>/less-permission-prompts</code> 是社群的早期版，官方新 skill 名稱為 <code>/fewer-permission-prompts</code>，邏輯類似但 Boris 建議用官方版。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Tip 03 · Recaps ========== -->
+<section class="section" id="tip-03">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-kicker"><span class="num">03</span> Recaps</div>
+        <h2 class="section-title">長任務的續航摘要 · 回來一目了然</h2>
+        <p class="section-lede">這週稍早為了 Opus 4.7 發布的小功能。Claude 跑到一半你跳開幾分鐘、幾小時再回來，Recaps 會直接告訴你 agent 剛才做了什麼、接下來要做什麼。</p>
+      </div>
+    </div>
+
+    <div class="grid-2 grid-2-image-right">
+      <div>
+        <div class="grid-3" style="grid-template-columns:1fr;gap:14px;">
+          <div class="card">
+            <div class="card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3 class="card-title">剛才做了什麼</h3>
+            <p class="card-text">agent 已完成的工作一覽——不用翻 log 往前倒帶。</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 19 12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+            <h3 class="card-title">接下來要做什麼</h3>
+            <p class="card-text">下一步 plan，讓你能直接決定「繼續跑」或「調整方向」。</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3 class="card-title">適用場景</h3>
+            <p class="card-text">任何長跑任務——deep research、大型重構、跨多檔案的 feature。</p>
+          </div>
+        </div>
+      </div>
+      <figure class="figure">
+        <img src="images/tip-03-recaps.png" alt="Recaps 功能：Claude 跑到一半跳開幾小時回來，看得到 agent 剛才做了什麼、接下來要做什麼，不用翻 log">
+        <figcaption class="figure-caption">Tip 03 · 自動接軌你的下一次對話</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Tip 04 · Focus Mode ========== -->
+<section class="section section-alt" id="tip-04">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-kicker"><span class="num">04</span> Focus Mode</div>
+        <h2 class="section-title">/focus · 只看最終結果</h2>
+        <p class="section-lede">CLI 新功能——把中間所有過程都隱藏，只顯示最後結果。4.7 已經到一個可以被信任的水準，Boris 自己大部分任務都只看結果。</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <figure class="figure">
+        <img src="images/tip-04-focus.png" alt="Focus Mode：隱藏中間過程，只顯示最終結果。Boris 原話：4.7 已經可以信任它跑對指令、改對地方了">
+        <figcaption class="figure-caption">Tip 04 · /focus 切換</figcaption>
+      </figure>
+      <div>
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>過程全部收折</strong>
+              <span>bash 呼叫、tool 輸出、中間 plan——都摺起來，只留最後結果給你看。</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>前提：信任模型</strong>
+              <span>要用得起來，你得先到達「信任模型跑對 commands、改對地方」的水準。4.7 幫很多任務跨過這個門檻。</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </div>
+            <div class="feature-text">
+              <strong>切換方式</strong>
+              <span><code>/focus</code> 指令 on/off——不用的時候切回一般模式，看完整過程。</span>
+            </div>
+          </div>
+        </div>
+        <div class="callout mt-24">
+          <strong>Boris 原話：</strong>「4.7 已經可以信任它跑對指令、改對地方了——我只看最終結果就好。」
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Tip 05 · /effort ========== -->
+<section class="section" id="tip-05">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-kicker"><span class="num">05</span> /effort</div>
+        <h2 class="section-title">Effort 等級怎麼選 · xhigh 是甜蜜點</h2>
+        <p class="section-lede">4.7 改用 adaptive thinking，不再用 thinking budget。要調它想多久？用 effort。Boris 自己大部分任務用 xhigh，最難的任務才上 max。</p>
+      </div>
+    </div>
+
+    <div class="effort-slider" role="img" aria-label="Effort 五段刻度：low、medium、high、xhigh、max">
+      <span class="effort-tick">low</span>
+      <span class="effort-tick">medium</span>
+      <span class="effort-tick">high</span>
+      <span class="effort-tick star">xhigh ★</span>
+      <span class="effort-tick">max</span>
+    </div>
+
+    <div class="grid-2 grid-2-image-right">
+      <div class="grid-3" style="grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="card stat-card">
+          <div class="stat-num" style="color:var(--accent-dark);">xhigh</div>
+          <div class="stat-label"><strong style="color:var(--text);">大部分任務</strong><br>夠聰明又夠快，能黏到下個 session</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-num" style="color:var(--danger);">max</div>
+          <div class="stat-label"><strong style="color:var(--text);">最難任務</strong><br>只影響當前 session，不會黏</div>
+        </div>
+        <div class="card" style="grid-column:1 / -1;">
+          <div class="card-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m4.22-11.22l4.24-4.24M6.34 6.34L2.1 2.1m11.32 15.56l4.24 4.24M6.34 17.66L2.1 21.9"/></svg>
+          </div>
+          <h3 class="card-title">adaptive thinking，不用手動控 budget</h3>
+          <p class="card-text">低 effort 走「快、省 token」路線，高 effort 走「最聰明」路線。用 <code>/effort</code> 指令切換；除了 max 之外都會記住。</p>
+        </div>
+      </div>
+      <figure class="figure">
+        <img src="images/tip-05-effort.png" alt="Effort 等級選擇：5 段刻度 low / medium / high / xhigh / max，xhigh 是 Boris 的甜蜜點">
+        <figcaption class="figure-caption">Tip 05 · /effort 指令切換</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Tip 06 · Verification (DARK) ========== -->
+<section class="section section-dark" id="tip-06">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-kicker"><span class="num">06</span> Verification · 最重要的一個</div>
+        <h2 class="section-title">給 Claude 一個驗證方式 · 輸出品質 2–3×</h2>
+        <p class="section-lede">Boris 說這招過去就能讓 Claude 輸出品質 2–3×，4.7 之後更關鍵——因為模型跑更久、更 agentic，沒驗證你根本不知道它是不是在幻覺。</p>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3 class="card-title">Backend</h3>
+        <p class="card-text">教 Claude 怎麼起你的 server / service，讓它自己跑 end-to-end 測試，看 response 才算完成。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h3 class="card-title">Frontend</h3>
+        <p class="card-text">用 Claude Chromium extension 控 browser，讓它真的點點看、看到 UI 才算完成。</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3 class="card-title">Desktop / 其他</h3>
+        <p class="card-text">用 computer use，讓它實際操作介面完成任務，不是只改 code。</p>
+      </div>
+    </div>
+
+    <div class="grid-2 grid-2-image-right mt-48">
+      <div>
+        <div class="card">
+          <h3 class="card-title">Boris 的 <code>/go</code> skill</h3>
+          <p class="card-text" style="font-size:16px;margin-top:12px;">他常用 prompt 長這樣：<strong style="color:var(--accent);">「Claude do X /go」</strong>。<code>/go</code> 是個 skill，會做三件事：</p>
+          <div class="feature-list mt-24" style="gap:10px;">
+            <div class="feature-item" style="padding:12px 16px;">
+              <div class="feature-icon" style="width:32px;height:32px;font-family:'Poppins',sans-serif;font-weight:700;color:var(--accent);">1</div>
+              <div class="feature-text"><strong>跑 end-to-end 測試</strong><span>用 bash / browser / computer use 確認真的能動</span></div>
+            </div>
+            <div class="feature-item" style="padding:12px 16px;">
+              <div class="feature-icon" style="width:32px;height:32px;font-family:'Poppins',sans-serif;font-weight:700;color:var(--accent);">2</div>
+              <div class="feature-text"><strong>跑 <code>/simplify</code></strong><span>把冗餘 wrapper / 過度工程的部分刪乾淨</span></div>
+            </div>
+            <div class="feature-item" style="padding:12px 16px;">
+              <div class="feature-icon" style="width:32px;height:32px;font-family:'Poppins',sans-serif;font-weight:700;color:var(--accent);">3</div>
+              <div class="feature-text"><strong>發 PR</strong><span>測過、簡化過、才進 review</span></div>
+            </div>
+          </div>
+          <div class="callout info mt-24">
+            <strong>關鍵：</strong>長任務尤其需要——你跳開回來後，才會知道 code 是真的能動，不是 Claude 幻覺出一份看起來很漂亮但跑不起來的成果。
+          </div>
+        </div>
+      </div>
+      <figure class="figure">
+        <img src="images/tip-06-verification.png" alt="Verification 三管道：Backend 起 server、Frontend 用 Chromium extension、Desktop 用 computer use；搭配 /go skill 自動完成測試、簡化、發 PR">
+        <figcaption class="figure-caption">Tip 06 · 4.7 之後更關鍵</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Outro ========== -->
+<section class="section section-alt" id="outro">
+  <div class="section-inner text-center">
+    <div class="section-kicker" style="justify-content:center;"><span class="num" style="background:var(--accent);color:var(--primary-deepest);">✓</span> Closing</div>
+    <h2 class="section-title" style="max-width:820px;margin:0 auto 16px;">真正的躍進 · 要花時間調整 workflow</h2>
+    <p class="section-lede" style="max-width:720px;margin:0 auto;">4.7 的體感，不在於模型變聰明了多少，而在於你願不願意讓它跑得更久、管得更少。</p>
+
+    <div class="callout" style="max-width:820px;margin:40px auto 0;text-align:left;">
+      <strong>Boris 收尾原話：</strong>「4.7 是 significant step up，但你要花時間調整 workflow——讓它跑更久、更 agentic。用舊 workflow 你只會感覺它有進步；真正的躍進，要等你改變習慣後才會到來。」
+    </div>
+
+    <div class="outro-ctas">
+      <a href="index.html#top" class="btn btn-primary">← 看完整 Opus 4.7 技術報告</a>
+      <a href="https://www.threads.com/@boris_cherny/post/DXM_ATtjxna" target="_blank" rel="noopener" class="btn btn-outline">閱讀 Boris 原串 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== Footer ========== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">
+          <span class="nav-brand-mark">4.7</span>
+          Claude Opus 4.7 技術報告
+        </div>
+        <p class="footer-desc">本頁整理 Boris Cherny（Claude Code tech lead）2026/04/16 在 Threads 發佈的 6 個 Opus 4.7 使用 tips。繁中解說 + 情境圖。</p>
+      </div>
+      <div>
+        <h4 class="footer-title">本站</h4>
+        <ul class="footer-list">
+          <li><a href="index.html#top">回到技術報告首頁</a></li>
+          <li><a href="index.html#claude-code">Claude Code 升級</a></li>
+          <li><a href="index.html#agentic">Agentic 改進</a></li>
+          <li><a href="index.html#migration">遷移指南</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="footer-title">原始來源</h4>
+        <ul class="footer-list">
+          <li><a href="https://www.threads.com/@boris_cherny/post/DXM_ATtjxna" target="_blank" rel="noopener">Boris Cherny 原串（Threads）</a></li>
+          <li><a href="https://www.anthropic.com/news/claude-opus-4-7" target="_blank" rel="noopener">Opus 4.7 發布公告</a></li>
+          <li><a href="https://docs.claude.com/en/docs/claude-code" target="_blank" rel="noopener">Claude Code 文件</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>source: @boris_cherny · compiled: 2026-04-17 by Ci</div>
+      <div>© 2026 · 內部技術分享用途</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  if (toggle && links) {
+    toggle.addEventListener('click', () => {
+      const open = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    links.querySelectorAll('.nav-link').forEach(a => {
+      a.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          links.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    });
+  }
+</script>
+
+</body>
+</html>

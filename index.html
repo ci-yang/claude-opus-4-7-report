@@ -144,6 +144,12 @@
     font-weight: 600;
   }
   .nav-link.cta:hover { background: var(--primary-dark); color: white; }
+  .nav-link.cta-accent {
+    background: var(--accent);
+    color: var(--primary-deepest);
+    font-weight: 700;
+  }
+  .nav-link.cta-accent:hover { background: var(--accent-dark); color: white; }
   .nav-menu-toggle {
     display: none;
     width: 40px;
@@ -347,9 +353,8 @@
   .section-dark .figure-caption { background: rgba(0,0,0,0.25); color: rgba(236,253,245,0.8); border-color: rgba(255,255,255,0.1); }
 
   /* ========== Cards ========== */
-  .grid-2 { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
-  .grid-2-image-right { grid-template-columns: 1fr; }
-  .grid-2 > .figure, .grid-2-image-right > .figure { max-width: 1100px; width: 100%; margin: 0 auto; justify-self: center; }
+  .grid-2 { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; }
+  .grid-2-image-right { grid-template-columns: 1fr 1.1fr; }
   .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 
@@ -696,6 +701,7 @@
       <a href="#tokenizer" class="nav-link">Tokenizer</a>
       <a href="#safety" class="nav-link">安全</a>
       <a href="#migration" class="nav-link cta">遷移指南</a>
+      <a href="tips.html" class="nav-link cta-accent">Boris 6 Tips →</a>
     </div>
   </div>
 </nav>
